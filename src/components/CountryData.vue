@@ -8,8 +8,8 @@ const props = defineProps({
 })
 
 const gdpPerCapita = computed(() => {
-  if (props.country && props.country.popuplation && props.country.gdp) {
-    return props.country.gdp / props.country.population
+  if (props.country && props.country.popuplation && props.country.pib) {
+    return props.country.pib / props.country.population
   }
   return null
 })
@@ -24,15 +24,34 @@ const isGdpAboveIncome = computed(() => {
 
 <template>
 <div v-if="props.country">
-  <p>Nombre: {{ props.country.name }}</p>
-  <p>Población: {{ props.country.population }}</p>
-  <p>Ingreso medio: {{ props.country.income }}</p>
-  <p>PIB: </p>
-  <p>Área: </p>
-  <p :style="{color: isGdpAboveIncome ? 'red' : 'black'}">PIB per cápita: {{ gdpPerCapita }}</p>
+  <table>
+    <tr>
+      <th>Nombre:</th>
+      <td>{{ props.country.name }}</td>
+      <th>Población</th>
+      <td>{{ props.country.population }}</td>
+    </tr>
+    <tr>
+      <th>PIB:</th>
+      <td>{{ props.country.pib }}</td>
+      <th>Área:</th>
+      <td>{{ props.country.area }}</td>
+    </tr>
+    <tr>
+      <th>Renta:</th>
+      <td>{{ props.country.income }}</td>
+      <th>PIB/habitante</th>
+      <td :style="{ color: isGdpAboveIncome ? 'red' : 'black' }">{{ gdpPerCapita }}</td>
+    </tr>
+    <tr>
+      <th>
+        <button>Eliminar</button>
+      </th>
+    </tr>
+  </table>
 </div>
-<div>
-  <p>No se pueden mostrar los datos del país</p>
+<div v-else>
+  <h3>No hay datos que mostrar</h3>
 </div>
 </template>
 

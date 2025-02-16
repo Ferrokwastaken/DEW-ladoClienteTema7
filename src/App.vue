@@ -1,11 +1,12 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import codes from './data/codes.json'
+import CountryData from './components/CountryData.vue'
 
 const name = ref('')
 const selectedCodes = ref([])
 const countryNames = ref([])
-const countryData = ref([])
+const countryData = ref({})
 const selectedCountry = ref([])
 
 const fetchCountryData = async (countryCode) => {
