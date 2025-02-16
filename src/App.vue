@@ -4,44 +4,63 @@ import codes from './data/codes.json'
 
 const name = ref('')
 const selectedCodes = ref([])
-const countryData = ref([])
 const countryNames = ref([])
+const countryData = ref([])
+const selectedCountry = ref([])
 
-onMounted(async () => {
+const fetchCountryData = async (countryCode) => {
   try {
-    const res = await fetch('http://localhost:3000/api/country/ESP')
-    countryData.value = await res.json()
-    console.log(countryData)
+    const res = await fetch(`http://localhost:3000/api/country/${countryCode}`)
+    if (!res.ok) {
+      throw new Error("País no encontrado")
+    }
+    const data = await res.json();
+    console.log(data)
+    return data
   } catch (error) {
-    console.log('Error al recibir los datos', error)
+    console.log('Error al recibir los datos', error);
   }
-})
+}
 
-const selectCode = (code) => {
-  console.log(code)
-  const selectedCode = selectedCodes.value.includes(code)
-  if (!selectedCode) {
-    selectedCodes.value.push(code)
+const selectCode = async (countryName) => {
+  const countryCode = Object.keys(countryData.value).find((code) => countryData.value[code] === countryName)
+  if (!countryCode) {
+    console.log('Código no encontrado')
+    return
+  }
+  const data = await fetchCountryData(countryCode)
+  if (data && !selectedCodes.value.includes(countryCode)) {
+    selectedCodes.value.push(countryCode)
+    selectedCountry.value = data
     console.log(selectedCodes.value)
   }
 }
 
 const unmark = (code) => {
   selectedCodes.value = selectedCodes.value.filter((c) => c !== code)
+  if (selectedCountry.value && selectedCountry.value.code == code) {
+    selectedCountry.value = null
+  }
 }
+
+const sortedSelectedCodes = computed(() => {
+  return [...selectedCodes.value].sort((a, b) => a.localeCompare(b))
+})
+
+const selectedCountryNames = computed(() => {
+  return sortedSelectedCodes.value.map((code) => countryData.value[code])
+})
 
 onMounted(async () => {
   try {
     const res = await fetch('http://localhost:3000/api/names')
-    countryNames.value = await res.json()
+    const data = await res.json()
+    countryData.value = data
+    countryNames.value = Object.values(data)
   } catch (error) {
     console.log('Error al recibir los datos', error)
   }
 })
-
-// const sortCountries = computed(() => {
-//   return countryNames.value.sort((a, b) => a.localeCompare(b))
-// })
 </script>
 
 <template>
@@ -64,13 +83,15 @@ onMounted(async () => {
     <div class="selected">
       <h2 v-if="selectedCodes.length == 0">Debes seleccionar algún país</h2>
       <ul v-else>
-        <li v-for="code in selectedCodes" :key="code">
-          {{ code }}
-          <button @click="unmark(code)">Desmarcar</button>
+        <li v-for="(countryName, index) in selectedCountryNames" :key="code">
+          {{ countryName }}
+          <button @click="unmark(sortedSelectedCodes[index])">Desmarcar</button>
         </li>
       </ul>
     </div>
-    <div class="country-data"></div>
+    <div class="country-data">
+      <CountryData :country="selectedCountry"></CountryData>
+    </div>
     <div class="options"></div>
     <div class="chart"></div>
   </div>
