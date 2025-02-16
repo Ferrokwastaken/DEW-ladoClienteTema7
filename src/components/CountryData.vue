@@ -1,11 +1,13 @@
 <script setup>
-import { defineProps, computed } from 'vue'
+import { defineProps, computed, defineEmits } from 'vue'
 
 const props = defineProps({
   country: {  
     type: Object,
     default: null}
 })
+
+const emits = defineEmits(['delete-country'])
 
 const gdpPerCapita = computed(() => {
   if (props.country && props.country.popuplation && props.country.pib) {
@@ -20,6 +22,12 @@ const isGdpAboveIncome = computed(() => {
   }
   return false
 })
+
+const deleteCountryData = () => {
+  if (props.country && props.country.code) {
+    emits('delete-country', props.country.code)
+  }
+}
 </script>
 
 <template>
@@ -45,7 +53,7 @@ const isGdpAboveIncome = computed(() => {
     </tr>
     <tr>
       <th>
-        <button>Eliminar</button>
+        <button @click="deleteCountryData">Eliminar</button>
       </th>
     </tr>
   </table>

@@ -1,17 +1,20 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import codes from './data/codes.json'
 import CountryData from './components/CountryData.vue'
+import GoogleChart from './components/GoogleChart.vue'
 
 const name = ref('')
 const selectedCodes = ref([])
 const countryNames = ref([])
 const countryData = ref({})
 const selectedCountry = ref([])
+const selectedDataType = ref('population')
+
+const dataTypes = ['population', 'pib', 'area', 'income']
 
 const fetchCountryData = async (countryCode) => {
   try {
-    const res = await fetch(`http://localhost:3000/api/country/${countryCode}`)
+    const res = await fetch('http://localhost:3000/api/country/' + countryCode)
     if (!res.ok) {
       throw new Error("País no encontrado")
     }
@@ -20,6 +23,21 @@ const fetchCountryData = async (countryCode) => {
     return data
   } catch (error) {
     console.log('Error al recibir los datos', error);
+  }
+}
+
+const deleteCountryData = async (countryCode) => {
+  try {
+    const res = await fetch('http://localhost:3000/api/country/' + countryCode, {
+      method: 'DELETE'
+    })
+    if (!res.ok) {
+      throw new Error("Error al eliminar los datos")
+    }
+    console.log('Eliminando:' + countryCode)
+    unmark(countryCode)
+  } catch (error) {
+    console.log('Error al eliminar los datos', error)
   }
 }
 
@@ -50,6 +68,18 @@ const sortedSelectedCodes = computed(() => {
 
 const selectedCountryNames = computed(() => {
   return sortedSelectedCodes.value.map((code) => countryData.value[code])
+})
+
+const chartData = computed(() => {
+  if (!selectedCountry.value) {
+    return []
+  }
+
+const data = [
+  ['País', selectedDataType.value],
+  [selectedCountry.value.name, selectedCountry.value[selectedDataType.value]]
+]
+return data
 })
 
 onMounted(async () => {
@@ -91,10 +121,17 @@ onMounted(async () => {
       </ul>
     </div>
     <div class="country-data">
-      <CountryData :country="selectedCountry"></CountryData>
+      <CountryData :country="selectedCountry" @delete-country="deleteCountryData"></CountryData>
     </div>
-    <div class="options"></div>
-    <div class="chart"></div>
+    <div class="options">
+      <label v-for="(type, index) in dataTypes" :key="index">
+        <input type="radio" :id="type" :name="type" :value="type" v-model="selectedDataType">
+        {{ type }}
+      </label>
+    </div>
+    <div class="chart">
+      <GoogleChart :data="chartData" />
+    </div>
   </div>
 </template>
 
